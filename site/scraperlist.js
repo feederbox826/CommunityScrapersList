@@ -36,7 +36,19 @@ const setTable = (scrapers) => {
     scraperName.textContent = scp.name;
     // supported sites
     const scraperSites = row.insertCell(1);
-    scraperSites.textContent = scp.sites.join(", \n");
+    const preContainer = document.createElement("pre");
+    if (scp.sites.length == 1) preContainer.textContent = scp.sites[0];
+    else {
+      const detailsBox = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = scp.sites[0];
+      detailsBox.appendChild(summary);
+      const p = document.createElement("p");
+      p.textContent = scp.sites.slice(1).join("\n");
+      detailsBox.appendChild(p);
+      preContainer.appendChild(detailsBox);
+    }
+    scraperSites.appendChild(preContainer);
     // scene scraping
     const scraperScene = row.insertCell(2);
     createToolTip(scraperScene, sType.scene);
