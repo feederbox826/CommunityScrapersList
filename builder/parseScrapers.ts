@@ -8,10 +8,20 @@ import { exportScraper, scraperExport } from "./scraper";
 
 function parseFile(file: string): ymlScraper {
   const fileData = readFileSync(file, "utf8");
+  // extract scrapes: comment
+  let scrapes = fileData.match(/^# scrapes: (.*)/gm)?.[0];
+  let scrapeList: string[] = [];
+  if (scrapes) {
+    scrapeList = scrapes
+      .replace("# scrapes:", "")
+      .split(",")
+      .map((scrape) => scrape.trim())
+  }
   const parsed: ymlScraper = parse(fileData) as unknown as ymlScraper;
   return {
     ...parsed,
     filename: file,
+    scrapes: scrapeList,
   };
 }
 async function parseRepository(

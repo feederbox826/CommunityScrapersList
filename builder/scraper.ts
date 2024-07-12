@@ -146,6 +146,7 @@ export async function exportScraper(scraper: ymlScraper): Promise<any> {
     filename: scraper.filename,
     name: scraper.name,
     sites: urlSites,
+    scrapes: scraper.scrapes,
     searchTypes: searchTypes,
     requires: requires,
     lastUpdate: lastUpdate,

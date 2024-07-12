@@ -86,6 +86,7 @@ export interface ymlScraper {
   [key: string]: any;
   filename: string;
   name: string;
+  scrapes?: string[];
   driver?: driverConfig;
   xPathScrapers?: xPathScraper | xPathScraper[];
   debug?: {
