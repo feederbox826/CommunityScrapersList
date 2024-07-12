@@ -69,6 +69,7 @@ function getScrapers() {
   fetch("scrapers.json")
     .then((response) => response.json())
     .then((data) => {
+      data = data.sort((a, b) => (a.name > b.name ? 1 : -1));
       setTable(data);
       // set up listeners
       [...tableButtons].forEach((th) =>
