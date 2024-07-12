@@ -45,7 +45,7 @@ const setTable = (scrapers) => {
     createToolTip(scraperGallery, sType.gallery);
     // movie scraping
     const scraperMovie = row.insertCell(4);
-    createToolTip(scraperMovie, sType.movie);
+    scraperMovie.textContent = emojiBool(sType.movie.url);
     // performer scraping
     const scraperPerformer = row.insertCell(5);
     createToolTip(scraperPerformer, sType.performer);
