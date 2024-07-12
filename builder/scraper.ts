@@ -17,7 +17,6 @@ interface searchTypes {
   };
   performer: {
     name: boolean;
-    fragment: boolean;
     url: boolean;
   };
   movie: {
@@ -49,7 +48,6 @@ const getSearchTypes = (scraper: ymlScraper): searchTypes => ({
   },
   performer: {
     name: scraper.performerByName !== undefined,
-    fragment: scraper.performerByFragment !== undefined,
     url: scraper.performerByURL !== undefined,
   },
   movie: {

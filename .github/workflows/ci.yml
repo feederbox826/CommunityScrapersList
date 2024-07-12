@@ -16,6 +16,7 @@ jobs:
         with:
           repository: stashapp/CommunityScrapers
           path: CommunityScrapers
+          fetch-depth: 0
       - uses: actions/setup-node@v4
       - run: |
           npm i -g pnpm && \
