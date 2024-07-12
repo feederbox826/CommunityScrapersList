@@ -19,7 +19,7 @@ async function parseRepository(
 ): Promise<ymlScraper[]> {
   const ymlFolderFiles = await glob(`${pathName}/**/*.yml`);
   const ymlFiles = await glob(`${pathName}/*.yml`);
-  const allYmlFiles = ymlFolderFiles.concat(ymlFiles);
+  const allYmlFiles = [...new Set([...ymlFolderFiles, ...ymlFiles])]
   const scrapers: ymlScraper[] = [];
   allYmlFiles.forEach((file: string) => {
     const scraper = parseFile(file);
