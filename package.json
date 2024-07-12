@@ -6,17 +6,16 @@
     "zod": "^3.23.8"
   },
   "scripts": {
-    "serve": "mkdocs serve",
-    "generate": "cd builder && ts-node build.ts",
-    "copy": "copy builder\\dist\\* docs\\",
-    "update": "npm run generate && npm run copy",
+    "dev": "cd site && vite serve",
+    "generate": "ts-node builder/parseScrapers.ts",
     "zod": "pnpm ts-to-zod ./builder/types.ts builder/zodType.ts",
-    "fmt": "pnpm prettier --write ."
+    "fmt": "pnpm prettier --write builder site"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",
     "ts-node": "^10.9.2",
     "ts-to-zod": "^3.9.1",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3"
   }
 }

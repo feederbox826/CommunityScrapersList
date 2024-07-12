@@ -79,12 +79,8 @@ function collectURLSites(scraper: ymlScraper): string[] {
       }
     }
   }
-  // get hostname, remove duplicates
-  urlSites = urlSites.map(
-    (url) => new URL(url.startsWith("http") ? url : `https://${url}`).hostname,
-  );
-  urlSites = [...new Set(urlSites)].sort();
-  return urlSites;
+  // remove duplicates
+  return Array.from(new Set(urlSites)).sort();
 }
 
 const checkScraperPython = (scraper: anyScraper): boolean =>
@@ -122,17 +118,21 @@ const getRequires = (
 });
 
 async function getLastUpdate(scraper: ymlScraper): Promise<Date | false> {
-    // if script we have to take all files into account, or take the folder
-    // check if scraper has a parent folder
-    const filename = scraper.filename.replace(/^CommunityScrapers\\scrapers\\/, "")
-    const folder = filename.split("\\").slice(0, -1).join("\\");
-    const isFolder = await lstat(folder)
-        .then((stat) => stat.isDirectory())
-        .catch((err) => false)
-    const chosenPath = isFolder ? folder : filename;
-    const latestUpdate = await git.log({ file: chosenPath })
-        .then(gitLog => gitLog?.latest)
-    return latestUpdate ? new Date(latestUpdate.date) : false
+  // if script we have to take all files into account, or take the folder
+  // check if scraper has a parent folder
+  const filename = scraper.filename.replace(
+    /^CommunityScrapers\/scrapers\//,
+    "",
+  );
+  const folder = filename.split("/").slice(0, -1).join("/");
+  const isFolder = await lstat(folder)
+    .then((stat) => stat.isDirectory())
+    .catch((err) => false);
+  const chosenPath = isFolder ? folder : filename;
+  const latestUpdate = await git
+    .log({ file: chosenPath })
+    .then((gitLog) => gitLog?.latest);
+  return latestUpdate ? new Date(latestUpdate.date) : false;
 }
 
 // fix return type
@@ -141,13 +141,15 @@ export async function exportScraper(scraper: ymlScraper): Promise<any> {
   const urlSites = collectURLSites(scraper);
   const searchTypes = getSearchTypes(scraper);
   const requires = getRequires(scraper);
-  const lastUpdate = await getLastUpdate(scraper) ?? new Date(0)
+  const lastUpdate = (await getLastUpdate(scraper)) ?? new Date(0);
+  // if debug, warn and error
+  if (scraper?.debug?.printHTML) new Error("Debug is enabled");
   return {
     filename: scraper.filename,
     name: scraper.name,
     sites: urlSites,
     searchTypes: searchTypes,
-    sceneUrl: requires,
-    lastUpdate: lastUpdate
+    requires: requires,
+    lastUpdate: lastUpdate,
   };
 }

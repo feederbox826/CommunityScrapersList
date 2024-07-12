@@ -1,4 +1,4 @@
-name: ci
+name: site-deploy
 on:
   push:
     branches:
@@ -10,28 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      - name: Configure Git Credentials
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
+          repository: stashapp/CommunityScrapers
+          path: CommunityScrapers
       - uses: actions/setup-node@v4
       - run: |
-          npm i
-          npm i -g ts-node
-          cd builder
-          mkdir dist
-          ts-node build.ts
-          cp dist/* ../docs/
-      - run: pip install \
-          mkdocs-material \
-          mkdocs-rss-plugin \
-          mkdocs-git-revision-date-localized-plugin \
-          mkdocs-git-committers-plugin-2 \
-          mkdocs-glightbox \
-          mkdocs-material[imaging]
-      - run: mkdocs gh-deploy --force
+          npm ci && \
+          npm run generate
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'site'
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

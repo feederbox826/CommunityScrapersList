@@ -1,18 +1,18 @@
 import { parse } from "yaml";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { ymlScraper } from "./types";
 import { glob } from "glob";
 import { z } from "zod";
 import { scraperSchema } from "./zodType";
-import { exportScraper } from "./scraper";
+import { exportScraper, scraperExport } from "./scraper";
 
 function parseFile(file: string): ymlScraper {
   const fileData = readFileSync(file, "utf8");
   const parsed: ymlScraper = parse(fileData) as unknown as ymlScraper;
   return {
     ...parsed,
-    filename: file
-  }
+    filename: file,
+  };
 }
 async function parseRepository(
   pathName: string = "CommunityScrapers/scrapers",
@@ -32,15 +32,19 @@ function validate(scraper: ymlScraper) {
   type validated = z.infer<typeof scraperSchema>;
   return scraper as validated;
 }
+
+// get all scrapers
+const mdScrapers: scraperExport[] = [];
 parseRepository()
   .then(async (scrapers) => {
     for (const scraper of scrapers) {
-      //console.log(scraper.name);
       validate(scraper);
-      // check that debug is not enabled
-      const parsed = await exportScraper(scraper);
-      console.log(parsed);
+      const parsed: scraperExport = await exportScraper(scraper);
+      mdScrapers.push(parsed);
     }
   })
   .catch((err) => console.error(err))
-  .then(() => console.log("VALIDATED"));
+  .then(() => {
+    writeFileSync("site/scrapers.json", JSON.stringify(mdScrapers, null, 2));
+    console.log("VALIDATED");
+  });
