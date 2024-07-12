@@ -16,8 +16,9 @@ jobs:
           path: CommunityScrapers
       - uses: actions/setup-node@v4
       - run: |
-          npm ci && \
-          npm run generate
+          npm i -g pnpm && \
+          pnpm i && \
+          pnpm run generate
       - uses: actions/upload-pages-artifact@v3
         with:
           path: 'site'
