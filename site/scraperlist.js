@@ -68,7 +68,7 @@ const setTable = (scrapers) => {
     scraperCDP.textContent = emojiBool(scp.requires.cdp);
     // last update
     const scraperLastUpdate = row.insertCell(8);
-    scraperLastUpdate.textContent = new Date(scp.lastUpdate).toDateString();
+    scraperLastUpdate.textContent = ago(new Date(scp.lastUpdate));
   });
 };
 
