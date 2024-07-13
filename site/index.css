@@ -27,3 +27,33 @@ thead {
 .navbar > .navbar-item {
   display: inline-block;
 }
+.pre {
+  -webkit-overflow-scrolling: touch;
+  -moz-osx-font-smoothing: auto;
+  -webkit-font-smoothing: auto;
+  background-color: var(--bulma-pre-background);
+  color: var(--bulma-pre);
+  font-size: var(--bulma-pre-font-size);
+  overflow-x: auto;
+  padding: var(--bulma-pre-padding);
+  white-space: pre;
+  word-wrap: normal;
+  font-family: var(--bulma-code-family);
+  margin: 0;
+  display: block;
+  unicode-bidi: isolate;
+}
+details {
+  word-wrap: normal;
+  white-space: pre;
+}
+#top-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 1000;
+}

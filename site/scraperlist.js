@@ -5,6 +5,8 @@ const searchInput = document.querySelector("#search");
 
 // helper functions
 const emojiBool = (value) => (value ? "✅" : "❌");
+const noMatch = "—";
+const returnMatch = (bool, value) => (bool ? value : noMatch);
 const anyTrue = (obj) => Object.values(obj).some((v) => v);
 // https://stackoverflow.com/a/54265129
 function debounce(f, interval) {
@@ -21,66 +23,100 @@ const createToolTip = (target, stypeObj) => {
   // check if any of the values are true
   const typeTrue = anyTrue(stypeObj);
   // if false, don't add tooltip
-  if (!typeTrue) return (target.textContent = emojiBool(false));
+  if (!typeTrue) return (target.textContent = noMatch);
   // generate tooltip text dynamically
   let tooltipArray = [];
+  let typeText = "";
   // add all applicable tooltips
-  const hasName = stypeObj.name;
-  if (hasName !== undefined) tooltipArray.push(`Name: ${emojiBool(hasName)}`);
-  const hasURL = stypeObj.url;
-  if (hasURL !== undefined) tooltipArray.push(`URL: ${emojiBool(hasURL)}`);
-  const hasFragment = stypeObj.fragment;
-  if (hasFragment !== undefined)
-    tooltipArray.push(`Fragment: ${emojiBool(hasFragment)}`);
-  const hasQueryFragment = stypeObj.queryFragment;
-  if (hasQueryFragment !== undefined)
-    tooltipArray.push(`QueryFragment: ${emojiBool(hasQueryFragment)}`);
-  // create tooltip text
+  const searchTypes = {
+    name: { tooltip: "Search:", emoji: "🔍" },
+    url: { tooltip: "URL:", emoji: "🔗" },
+    fragment: { tooltip: "Smart:", emoji: "🧠" },
+  };
+  for (const [key, value] of Object.entries(searchTypes)) {
+    const check = stypeObj[key];
+    if (check !== undefined) {
+      tooltipArray.push(`${value.tooltip} ${emojiBool(check)}`);
+      if (check) typeText += value.emoji;
+    }
+  } // create tooltip text
   const tooltipElement = document.createElement("span");
   tooltipElement.textContent = tooltipArray.join(" | ");
-  target.textContent = emojiBool(typeTrue);
+  target.textContent = typeText;
   target.classList.add("tooltip");
   target.appendChild(tooltipElement);
 };
 
-const siteDetails = (sites, expand = false) => {
-  const preContainer = document.createElement("pre");
+const siteDetails = (sites, searchValue, expand = false) => {
+  const preContainer = document.createElement("div");
+  preContainer.classList.add("pre");
   if (sites.length == 1) preContainer.textContent = sites[0];
   else {
+    // search
+    sites = sites.map((site) =>
+      searchValue && site.includes(searchValue) ? `<mark>${site}</mark>` : site,
+    );
     const summary = document.createElement("summary");
     summary.textContent = sites[0];
     const p = document.createElement("p");
-    p.textContent = sites.slice(1).join("\n");
+    p.innerHTML = sites.slice(1).join("\n");
     const detailsBox = document.createElement("details");
     detailsBox.appendChild(p);
     detailsBox.appendChild(summary);
     preContainer.appendChild(detailsBox);
-    if (expand) detailsBox.open = true;
+    if (expand && searchValue) detailsBox.open = true;
   }
   return preContainer;
 };
 
-const setTable = (scrapers, search = false) => {
+const scrapes = (name, scrapes, searchValue, expand = false) => {
+  const preContainer = document.createElement("div");
+  if (!scrapes) preContainer.textContent = name;
+  else {
+    // search
+    scrapes = scrapes.map((scrape) =>
+      searchValue && scrape.toLowerCase().includes(searchValue.toLowerCase())
+        ? `<mark>${scrape}</mark>`
+        : scrape,
+    );
+    const summary = document.createElement("summary");
+    summary.textContent = name;
+    const p = document.createElement("p");
+    p.innerHTML = scrapes.join("\n");
+    const detailsBox = document.createElement("details");
+    detailsBox.appendChild(p);
+    detailsBox.appendChild(summary);
+    preContainer.appendChild(detailsBox);
+    if (expand && searchValue) detailsBox.open = true;
+  }
+  return preContainer;
+};
+
+const setTable = (scrapers, searchValue = "") => {
   const table = document.getElementById("scraper-list");
   if (table.rows.length) table.innerHTML = "";
   scrapers.forEach((scp, idx) => {
     const sType = scp.searchTypes;
     const row = table.insertRow();
     // name
-    row.insertCell(0).textContent = scp.name;
+    row
+      .insertCell(0)
+      .appendChild(scrapes(scp.name, scp.scrapes, searchValue, idx <= 5));
     // supported sites
-    row.insertCell(1).appendChild(siteDetails(scp.sites, search && idx <= 5));
+    row
+      .insertCell(1)
+      .appendChild(siteDetails(scp.sites, searchValue, idx <= 5));
     // scene scraping
     createToolTip(row.insertCell(2), sType.scene);
     // gallery scraping
     createToolTip(row.insertCell(3), sType.gallery);
     // movie scraping
-    row.insertCell(4).textContent = emojiBool(sType.movie.url);
+    row.insertCell(4).textContent = returnMatch(sType.movie.url, "🔗");
     // performer scraping
     createToolTip(row.insertCell(5), sType.performer);
     // requires
-    row.insertCell(6).textContent = emojiBool(scp.requires.python);
-    row.insertCell(7).textContent = emojiBool(scp.requires.cdp);
+    row.insertCell(6).textContent = returnMatch(scp.requires.python, "🐍");
+    row.insertCell(7).textContent = returnMatch(scp.requires.cdp, "🌐");
     row.insertCell(8).textContent = ago(new Date(scp.lastUpdate));
   });
 };
@@ -123,13 +159,13 @@ let fuse;
 // fuse search
 async function search(event) {
   const searchValue = event.target.value;
-  if (searchValue.length < 3) return;
+  if (searchValue.length < 3) return setTable(rawScraperList);
   const results = fuse.search(searchValue, {
     limit: 20,
   });
   console.debug(searchValue, results);
   const filterTable = results.map((result) => result.item);
-  setTable(filterTable, true);
+  setTable(filterTable, searchValue);
 }
 
 // parse scrapers.json
