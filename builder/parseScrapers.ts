@@ -33,6 +33,7 @@ async function parseRepository(
   const scrapers: ymlScraper[] = [];
   allYmlFiles.forEach((file: string) => {
     const scraper = parseFile(file);
+    if (scraper.scrapes?.length === 0) delete scraper.scrapes;
     scrapers.push(scraper);
   });
   return scrapers;
@@ -44,7 +45,7 @@ function validate(scraper: ymlScraper) {
 }
 
 // get all scrapers
-const mdScrapers: scraperExport[] = [];
+let mdScrapers: scraperExport[] = [];
 parseRepository()
   .then(async (scrapers) => {
     for (const scraper of scrapers) {
@@ -53,8 +54,11 @@ parseRepository()
       mdScrapers.push(parsed);
     }
   })
-  .catch((err) => console.error(err))
   .then(() => {
-    writeFileSync("site/scrapers.json", JSON.stringify(mdScrapers, null, 2));
+    mdScrapers = mdScrapers.sort((a, b) => (a.name > b.name ? 1 : -1));
+    writeFileSync("scrapers-debug.json", JSON.stringify(mdScrapers, null, 2));
+    writeFileSync("site/scrapers.json", JSON.stringify(mdScrapers));
     console.log("VALIDATED");
-  });
+  })
+  .catch((err) => console.error(err))
+

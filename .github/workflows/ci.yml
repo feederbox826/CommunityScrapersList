@@ -21,7 +21,8 @@ jobs:
       - run: |
           npm i -g pnpm && \
           pnpm i && \
-          pnpm run generate
+          pnpm run generate && \
+          pnpm run fuse-index
       - uses: actions/upload-pages-artifact@v3
         with:
           path: 'site'

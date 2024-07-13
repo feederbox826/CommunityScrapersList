@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "fuse.js": "^7.0.0",
     "glob": "^11.0.0",
     "simple-git": "^3.25.0",
     "yaml": "^2.4.5",
@@ -9,7 +10,8 @@
     "vite-dev": "cd site && vite serve",
     "generate": "ts-node builder/parseScrapers.ts",
     "zod": "pnpm ts-to-zod ./builder/types.ts builder/zodType.ts",
-    "fmt": "pnpm prettier --write builder site"
+    "fmt": "pnpm prettier --write builder site",
+    "fuse-index": "node builder/fuse-index.js"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",

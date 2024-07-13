@@ -1,7 +1,23 @@
+// constant elements
 const tableButtons = document.querySelectorAll("#scraper-table thead th");
+const searchInput = document.querySelector('#search');
 
+// helper functions
 const emojiBool = (value) => (value ? "✅" : "❌");
 const anyTrue = (obj) => Object.values(obj).some((v) => v);
+// https://stackoverflow.com/a/54265129
+function debounce(f, interval) {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    return new Promise((resolve) => {
+      timer = setTimeout(
+        () => resolve(f(...args)),
+        interval,
+      );
+    });
+  };
+}
 // tooltip helper
 const createToolTip = (target, stypeObj) => {
   const typeTrue = anyTrue(stypeObj);
@@ -29,7 +45,9 @@ const createToolTip = (target, stypeObj) => {
 
 const setTable = (scrapers) => {
   const table = document.getElementById("scraper-list");
-  scrapers.forEach((scp) => {
+  if (table.rows.length) table.innerHTML = "";
+  let isSearch = table.rows.length <= 20
+  scrapers.forEach((scp, idx) => {
     const sType = scp.searchTypes;
     const row = table.insertRow();
     const scraperName = row.insertCell(0);
@@ -47,6 +65,8 @@ const setTable = (scrapers) => {
       p.textContent = scp.sites.slice(1).join("\n");
       detailsBox.appendChild(p);
       preContainer.appendChild(detailsBox);
+      // auto-open details of first 5 search results
+      if (isSearch && idx <=5) detailsBox.open = true;
     }
     scraperSites.appendChild(preContainer);
     // scene scraping
@@ -72,40 +92,51 @@ const setTable = (scrapers) => {
   });
 };
 
-const resetButtons = (e) => {
-  [...tableButtons].forEach((th) => {
-    if (th !== e.target) {
-      delete th.dataset.direction;
-    }
-  });
+// fuse config
+const fuseConfig = {
+  keys: [{
+    name: 'filename',
+    weight: 2
+  }, {
+    name: "name",
+    weight: 20
+  }, {
+    name: 'sites',
+    weight: 2
+  }, {
+    name: 'scrapes',
+    weight: 10
+  }],
+  threshold: 0.4,
+  includeScore: true, // debugging
+  minMatchCharLength: 3
 };
 
-function getScrapers() {
-  fetch("scrapers.json")
+// parse scrapers.json
+// init fuse
+let fuse;
+let rawScraperList = [];
+
+async function getScrapers() {
+  const rawScraperList = await fetch("scrapers.json")
     .then((response) => response.json())
-    .then((data) => {
-      data = data.sort((a, b) => (a.name > b.name ? 1 : -1));
-      setTable(data);
-      // set up listeners
-      [...tableButtons].forEach((th) =>
-        th.addEventListener("click", (e) => {
-          resetButtons(e);
-          const direction = th.dataset.direction === "asc" ? "desc" : "asc";
-          sortData(data, th.id, direction);
-          th.dataset.direction = direction;
-        }),
-      );
-    });
+  setTable(rawScraperList)
+  const fuseIndex = await fetch("fuse-index.json")
+    .then((response) => response.json())
+    .then((data) => Fuse.parseIndex(data));
+  fuse = new Fuse(rawScraperList, fuseConfig, fuseIndex);
+  searchInput.addEventListener('input', debounce(search, 300));
 }
 
-const sortData = (data, param, direction = "asc") => {
-  const table = document.getElementById("scraper-list");
-  table.innerHTML = "";
-  const sortedData =
-    direction == "asc"
-      ? data.sort((a, b) => (a[param] > b[param] ? 1 : -1))
-      : data.sort((a, b) => (a[param] < b[param] ? 1 : -1));
-  setTable(sortedData);
-};
-
 getScrapers();
+
+async function search(event) {
+  const searchValue = event.target.value;
+  if (searchValue.length < 3) return;
+  const results = fuse.search(searchValue, {
+    limit: 20
+  });
+  console.debug(results)
+  const filterTable = results.map(result => result.item)
+  setTable(filterTable)
+}
