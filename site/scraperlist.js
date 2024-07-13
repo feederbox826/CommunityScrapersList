@@ -1,5 +1,4 @@
 // constant elements
-const tableButtons = document.querySelectorAll("#scraper-table thead th");
 const searchInput = document.querySelector("#search");
 
 // helper functions

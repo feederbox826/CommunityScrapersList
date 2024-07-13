@@ -21,8 +21,7 @@ jobs:
       - run: |
           npm i -g pnpm && \
           pnpm i && \
-          pnpm run generate && \
-          pnpm run fuse-index
+          pnpm run ci-build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: 'site'

@@ -45,19 +45,16 @@ function validate(scraper: ymlScraper) {
 }
 
 // get all scrapers
-let mdScrapers: scraperExport[] = [];
-parseRepository()
-  .then(async (scrapers) => {
-    for (const scraper of scrapers) {
-      validate(scraper);
-      const parsed: scraperExport = await exportScraper(scraper);
-      mdScrapers.push(parsed);
-    }
-  })
-  .then(() => {
-    mdScrapers = mdScrapers.sort((a, b) => (a.name > b.name ? 1 : -1));
-    writeFileSync("scrapers-debug.json", JSON.stringify(mdScrapers, null, 2));
-    writeFileSync("site/scrapers.json", JSON.stringify(mdScrapers));
-    console.log("VALIDATED");
-  })
-  .catch((err) => console.error(err));
+async function main(): Promise<void> {
+  const validatedScrapers = await parseRepository()
+    .then((scrapers) => scrapers.map(validate) as ymlScraper[])
+    .then((scrapers) => scrapers.map(exportScraper));
+  let mdScrapers: scraperExport[] = await Promise.all(validatedScrapers);
+  // sort
+  mdScrapers = mdScrapers.sort((a, b) => (a.name > b.name ? 1 : -1));
+  // export to files
+  writeFileSync("scrapers-debug.json", JSON.stringify(mdScrapers, null, 2));
+  writeFileSync("site/scrapers.json", JSON.stringify(mdScrapers));
+  console.log("VALIDATED");
+}
+main();

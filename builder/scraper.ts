@@ -131,7 +131,7 @@ async function getLastUpdate(scraper: ymlScraper): Promise<Date | false> {
     .catch((err) => false);
   const chosenPath = isFolder ? folder : filename;
   const latestUpdate = await git
-    .log({ file: chosenPath })
+    .log({ file: chosenPath, maxCount: 1 })
     .then((gitLog) => gitLog?.latest);
   return latestUpdate ? new Date(latestUpdate.date) : false;
 }

@@ -11,7 +11,8 @@
     "generate": "ts-node builder/parseScrapers.ts",
     "zod": "pnpm ts-to-zod ./builder/types.ts builder/zodType.ts",
     "fmt": "pnpm prettier --write builder site",
-    "fuse-index": "node builder/fuse-index.js"
+    "fuse-index": "node ci/fuse-index.js",
+    "ci-build": "npm run generate && npm run fuse-index"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",
