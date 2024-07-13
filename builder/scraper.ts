@@ -29,8 +29,11 @@ interface searchTypes {
 }
 
 export interface scraperExport {
+  filename: string;
   name: string;
-  sites: { name: string; url: string }[];
+  sites: string[];
+  hosts?: string[]; // for fuse searching
+  scrapes?: string[];
   searchTypes: searchTypes;
   requires: {
     cdp: boolean;
@@ -134,18 +137,24 @@ async function getLastUpdate(scraper: ymlScraper): Promise<Date | false> {
 }
 
 // fix return type
-export async function exportScraper(scraper: ymlScraper): Promise<any> {
+export async function exportScraper(
+  scraper: ymlScraper,
+): Promise<scraperExport> {
   // collect URL sites
-  const urlSites = collectURLSites(scraper);
+  const sites = collectURLSites(scraper);
+  const hosts = sites.map(
+    (url) => new URL(url.startsWith("http") ? url : `https://${url}`).hostname,
+  );
   const searchTypes = getSearchTypes(scraper);
   const requires = getRequires(scraper);
-  const lastUpdate = (await getLastUpdate(scraper)) ?? new Date(0);
+  const lastUpdate = (await getLastUpdate(scraper)) || new Date(0);
   // if debug, warn and error
   if (scraper?.debug?.printHTML) new Error("Debug is enabled");
   return {
     filename: scraper.filename,
     name: scraper.name,
-    sites: urlSites,
+    sites,
+    hosts,
     scrapes: scraper.scrapes,
     searchTypes: searchTypes,
     requires: requires,

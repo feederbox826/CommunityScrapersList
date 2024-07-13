@@ -15,7 +15,7 @@ function parseFile(file: string): ymlScraper {
     scrapeList = scrapes
       .replace("# scrapes:", "")
       .split(",")
-      .map((scrape) => scrape.trim())
+      .map((scrape) => scrape.trim());
   }
   const parsed: ymlScraper = parse(fileData) as unknown as ymlScraper;
   return {
@@ -29,7 +29,7 @@ async function parseRepository(
 ): Promise<ymlScraper[]> {
   const ymlFolderFiles = await glob(`${pathName}/**/*.yml`);
   const ymlFiles = await glob(`${pathName}/*.yml`);
-  const allYmlFiles = [...new Set([...ymlFolderFiles, ...ymlFiles])]
+  const allYmlFiles = [...new Set([...ymlFolderFiles, ...ymlFiles])];
   const scrapers: ymlScraper[] = [];
   allYmlFiles.forEach((file: string) => {
     const scraper = parseFile(file);
@@ -60,5 +60,4 @@ parseRepository()
     writeFileSync("site/scrapers.json", JSON.stringify(mdScrapers));
     console.log("VALIDATED");
   })
-  .catch((err) => console.error(err))
-
+  .catch((err) => console.error(err));
