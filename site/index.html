@@ -4,10 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Stash Scrapers List</title>
-    <style>
-      @import url("https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css");
-      @import url("index.css");
-    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css"
+    />
+    <link rel="stylesheet" href="index.css" />
   </head>
   <body>
     <nav class="navbar" role="navigation">
@@ -25,7 +26,10 @@
     <section class="section">
       <input type="text" class="input" id="search" placeholder="Search..." />
       <hr />
-      <table class="table is-fullwidth" id="scraper-table">
+      <table
+        class="table is-fullwidth is-striped is-hoverable"
+        id="scraper-table"
+      >
         <thead>
           <tr>
             <th id="scraper_name">Name</th>
@@ -42,8 +46,6 @@
         <tbody id="scraper-list"></tbody>
       </table>
     </section>
-    <script src="ago.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
-    <script src="scraperlist.js"></script>
+    <script type="module" src="scraperlist.js"></script>
   </body>
 </html>

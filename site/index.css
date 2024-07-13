@@ -4,7 +4,6 @@
   text-decoration: none;
   padding: 3px;
 }
-
 .tooltip:hover span {
   display: block;
   position: absolute;

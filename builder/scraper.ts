@@ -154,7 +154,7 @@ export async function exportScraper(
     filename: scraper.filename,
     name: scraper.name,
     sites,
-    hosts,
+    hosts: [...new Set(hosts)],
     scrapes: scraper.scrapes,
     searchTypes: searchTypes,
     requires: requires,

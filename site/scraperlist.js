@@ -1,3 +1,5 @@
+import Fuse from "https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.basic.min.mjs";
+import ago from "./ago.js";
 // constant elements
 const searchInput = document.querySelector("#search");
 
@@ -16,11 +18,13 @@ function debounce(f, interval) {
 }
 // tooltip helper
 const createToolTip = (target, stypeObj) => {
+  // check if any of the values are true
   const typeTrue = anyTrue(stypeObj);
   // if false, don't add tooltip
   if (!typeTrue) return (target.textContent = emojiBool(false));
   // generate tooltip text dynamically
   let tooltipArray = [];
+  // add all applicable tooltips
   const hasName = stypeObj.name;
   if (hasName !== undefined) tooltipArray.push(`Name: ${emojiBool(hasName)}`);
   const hasURL = stypeObj.url;
@@ -31,39 +35,41 @@ const createToolTip = (target, stypeObj) => {
   const hasQueryFragment = stypeObj.queryFragment;
   if (hasQueryFragment !== undefined)
     tooltipArray.push(`QueryFragment: ${emojiBool(hasQueryFragment)}`);
-  const tooltip = tooltipArray.join(" | ");
+  // create tooltip text
   const tooltipElement = document.createElement("span");
+  tooltipElement.textContent = tooltipArray.join(" | ");
   target.textContent = emojiBool(typeTrue);
-  tooltipElement.textContent = tooltip;
   target.classList.add("tooltip");
   target.appendChild(tooltipElement);
 };
 
-const setTable = (scrapers) => {
+const siteDetails = (sites, expand = false) => {
+  const preContainer = document.createElement("pre");
+  if (sites.length == 1) preContainer.textContent = sites[0];
+  else {
+    const summary = document.createElement("summary");
+    summary.textContent = sites[0];
+    const p = document.createElement("p");
+    p.textContent = sites.slice(1).join("\n");
+    const detailsBox = document.createElement("details");
+    detailsBox.appendChild(p);
+    detailsBox.appendChild(summary);
+    preContainer.appendChild(detailsBox);
+    if (expand) detailsBox.open = true;
+  }
+  return preContainer;
+};
+
+const setTable = (scrapers, search = false) => {
   const table = document.getElementById("scraper-list");
   if (table.rows.length) table.innerHTML = "";
-  let isSearch = table.rows.length <= 20;
   scrapers.forEach((scp, idx) => {
     const sType = scp.searchTypes;
     const row = table.insertRow();
-    // start row parsing
+    // name
     row.insertCell(0).textContent = scp.name;
     // supported sites
-    const preContainer = document.createElement("pre");
-    if (scp.sites.length == 1) preContainer.textContent = scp.sites[0];
-    else {
-      const summary = document.createElement("summary");
-      summary.textContent = scp.sites[0];
-      const p = document.createElement("p");
-      p.textContent = scp.sites.slice(1).join("\n");
-      const detailsBox = document.createElement("details");
-      detailsBox.appendChild(p);
-      detailsBox.appendChild(summary);
-      preContainer.appendChild(detailsBox);
-      // auto-open details of first 5 search results
-      if (isSearch && idx <= 5) detailsBox.open = true;
-    }
-    row.insertCell(1).appendChild(preContainer);
+    row.insertCell(1).appendChild(siteDetails(scp.sites, search && idx <= 5));
     // scene scraping
     createToolTip(row.insertCell(2), sType.scene);
     // gallery scraping
@@ -111,25 +117,10 @@ const fuseConfig = {
   minMatchCharLength: 3,
 };
 
-// parse scrapers.json
 // init fuse
 let fuse;
-let rawScraperList = [];
 
-async function getScrapers() {
-  const rawScraperList = await fetch("scrapers.json").then((response) =>
-    response.json(),
-  );
-  setTable(rawScraperList);
-  const fuseIndex = await fetch("fuse-index.json")
-    .then((response) => response.json())
-    .then((data) => Fuse.parseIndex(data));
-  fuse = new Fuse(rawScraperList, fuseConfig, fuseIndex);
-  searchInput.addEventListener("input", debounce(search, 300));
-}
-
-getScrapers();
-
+// fuse search
 async function search(event) {
   const searchValue = event.target.value;
   if (searchValue.length < 3) return;
@@ -138,5 +129,16 @@ async function search(event) {
   });
   console.debug(searchValue, results);
   const filterTable = results.map((result) => result.item);
-  setTable(filterTable);
+  setTable(filterTable, true);
 }
+
+// parse scrapers.json
+const rawScraperList = await fetch("scrapers.json").then((response) =>
+  response.json(),
+);
+setTable(rawScraperList);
+const fuseIndex = await fetch("fuse-index.json")
+  .then((response) => response.json())
+  .then((data) => Fuse.parseIndex(data));
+fuse = new Fuse(rawScraperList, fuseConfig, fuseIndex);
+searchInput.addEventListener("input", debounce(search, 300));
