@@ -2,6 +2,12 @@ import Fuse from "https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.basic.min
 import ago from "./ago.js";
 // constant elements
 const searchInput = document.querySelector("#search");
+const table = document.getElementById("scraper-list");
+const searchTypes = {
+  name: { tooltip: "Search:", emoji: "🔍" },
+  url: { tooltip: "URL:", emoji: "🔗" },
+  fragment: { tooltip: "Smart:", emoji: "🧠" },
+};
 
 // helper functions
 const emojiBool = (value) => (value ? "✅" : "❌");
@@ -18,28 +24,23 @@ function debounce(f, interval) {
     });
   };
 }
+
 // tooltip helper
 const createToolTip = (target, stypeObj) => {
-  // check if any of the values are true
-  const typeTrue = anyTrue(stypeObj);
   // if false, don't add tooltip
-  if (!typeTrue) return (target.textContent = noMatch);
+  if (!anyTrue(stypeObj)) return (target.textContent = noMatch);
   // generate tooltip text dynamically
   let tooltipArray = [];
   let typeText = "";
   // add all applicable tooltips
-  const searchTypes = {
-    name: { tooltip: "Search:", emoji: "🔍" },
-    url: { tooltip: "URL:", emoji: "🔗" },
-    fragment: { tooltip: "Smart:", emoji: "🧠" },
-  };
   for (const [key, value] of Object.entries(searchTypes)) {
     const check = stypeObj[key];
     if (check !== undefined) {
       tooltipArray.push(`${value.tooltip} ${emojiBool(check)}`);
       if (check) typeText += value.emoji;
     }
-  } // create tooltip text
+  }
+  // create tooltip text
   const tooltipElement = document.createElement("span");
   tooltipElement.textContent = tooltipArray.join(" | ");
   target.textContent = typeText;
@@ -47,19 +48,20 @@ const createToolTip = (target, stypeObj) => {
   target.appendChild(tooltipElement);
 };
 
-const siteDetails = (sites, searchValue, expand = false) => {
+const createDetails = (values, fallback, searchValue, expand = false) => {
   const preContainer = document.createElement("div");
-  preContainer.classList.add("pre");
-  if (sites.length == 1) preContainer.textContent = sites[0];
+  if (!values?.length) preContainer.textContent = fallback;
   else {
     // search
-    sites = sites.map((site) =>
-      searchValue && site.includes(searchValue) ? `<mark>${site}</mark>` : site,
+    values = values.map((value) =>
+      searchValue && value.toLowerCase().includes(searchValue.toLowerCase())
+        ? `<mark>${value}</mark>`
+        : value,
     );
     const summary = document.createElement("summary");
-    summary.textContent = sites[0];
+    summary.textContent = fallback;
     const p = document.createElement("p");
-    p.innerHTML = sites.slice(1).join("\n");
+    p.innerHTML = values.join("\n");
     const detailsBox = document.createElement("details");
     detailsBox.appendChild(p);
     detailsBox.appendChild(summary);
@@ -69,31 +71,21 @@ const siteDetails = (sites, searchValue, expand = false) => {
   return preContainer;
 };
 
-const scrapes = (name, scrapes, searchValue, expand = false) => {
-  const preContainer = document.createElement("div");
-  if (!scrapes) preContainer.textContent = name;
-  else {
-    // search
-    scrapes = scrapes.map((scrape) =>
-      searchValue && scrape.toLowerCase().includes(searchValue.toLowerCase())
-        ? `<mark>${scrape}</mark>`
-        : scrape,
-    );
-    const summary = document.createElement("summary");
-    summary.textContent = name;
-    const p = document.createElement("p");
-    p.innerHTML = scrapes.join("\n");
-    const detailsBox = document.createElement("details");
-    detailsBox.appendChild(p);
-    detailsBox.appendChild(summary);
-    preContainer.appendChild(detailsBox);
-    if (expand && searchValue) detailsBox.open = true;
-  }
+const siteDetails = (sites, searchValue, expand = false) => {
+  const preContainer = createDetails(
+    sites.slice(1),
+    sites[0],
+    searchValue,
+    expand,
+  );
+  preContainer.classList.add("pre");
   return preContainer;
 };
+
+const scrapes = (name, scrapes, searchValue, expand = false) =>
+  createDetails(scrapes, name, searchValue, expand);
 
 const setTable = (scrapers, searchValue = "") => {
-  const table = document.getElementById("scraper-list");
   if (table.rows.length) table.innerHTML = "";
   scrapers.forEach((scp, idx) => {
     const sType = scp.searchTypes;

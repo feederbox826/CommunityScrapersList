@@ -48,9 +48,14 @@ const byFragmentScraperSchema = baseUrlScraperSchema.extend({
 
 const byNameScraperSchema = byFragmentScraperSchema;
 
-const scriptScraperSchema = z.object({
+export const scriptScraperSchema = z.object({
   action: z.literal("script"),
   script: z.array(z.string()),
+});
+
+export const byUrlScraperSchema = baseUrlScraperSchema.extend({
+  url: z.array(z.string()),
+  queryURL: z.string().optional(),
 });
 
 const xPathScraperSchema = z.record(
@@ -69,20 +74,20 @@ const xPathScraperSchema = z.record(
   }),
 );
 
-const byNameScraperDefnSchema = z.union([
+export const byNameScraperDefnSchema = z.union([
   scriptScraperSchema,
   byNameScraperSchema,
 ]);
 
-const byFragmentScraperDefnSchema = z.union([
+export const byFragmentScraperDefnSchema = z.union([
   scriptScraperSchema,
   byFragmentScraperSchema,
 ]);
 
-const byUrlScraperSchema = baseUrlScraperSchema.extend({
-  url: z.array(z.string()),
-  queryURL: z.string().optional(),
-});
+export const byUrlScraperDefnSchema = z.union([
+  scriptScraperSchema,
+  byUrlScraperSchema,
+]);
 
 const driverConfigSchema = z.object({
   useCDP: z.boolean().optional(),
@@ -113,32 +118,38 @@ const driverConfigSchema = z.object({
     .optional(),
 });
 
-const byUrlScraperDefnSchema = z.union([
-  scriptScraperSchema,
+export const anyScraperSchema = z.union([
+  byNameScraperSchema,
+  byFragmentScraperSchema,
   byUrlScraperSchema,
+  scriptScraperSchema,
 ]);
 
-export const scraperSchema = z.object({
-  name: z.string(),
-  driver: driverConfigSchema.optional(),
-  xPathScrapers: z
-    .union([xPathScraperSchema, z.array(xPathScraperSchema)])
-    .optional(),
-  debug: z
-    .object({
-      printHTML: z.boolean().optional(),
-    })
-    .optional(),
-  performerByName: byNameScraperDefnSchema.optional(),
-  performerByFragment: byFragmentScraperDefnSchema.optional(),
-  performerByURL: z.array(byUrlScraperDefnSchema).optional(),
-  sceneByName: byNameScraperDefnSchema.optional(),
-  sceneByQueryFragment: byFragmentScraperDefnSchema.optional(),
-  sceneByFragment: byFragmentScraperDefnSchema.optional(),
-  sceneByURL: z.array(byUrlScraperDefnSchema).optional(),
-  movieByURL: z.array(byUrlScraperDefnSchema).optional(),
-  galleryByFragment: z
-    .union([scriptScraperSchema, byFragmentScraperSchema])
-    .optional(),
-  galleryByURL: z.array(byUrlScraperDefnSchema).optional(),
-});
+export const ymlScraperSchema = z.record(z.any()).and(
+  z.object({
+    filename: z.string(),
+    name: z.string(),
+    scrapes: z.array(z.string()).optional(),
+    driver: driverConfigSchema.optional(),
+    xPathScrapers: z
+      .union([xPathScraperSchema, z.array(xPathScraperSchema)])
+      .optional(),
+    debug: z
+      .object({
+        printHTML: z.boolean().optional(),
+      })
+      .optional(),
+    performerByName: byNameScraperDefnSchema.optional(),
+    performerByFragment: byFragmentScraperDefnSchema.optional(),
+    performerByURL: z.array(byUrlScraperDefnSchema).optional(),
+    sceneByName: byNameScraperDefnSchema.optional(),
+    sceneByQueryFragment: byFragmentScraperDefnSchema.optional(),
+    sceneByFragment: byFragmentScraperDefnSchema.optional(),
+    sceneByURL: z.array(byUrlScraperDefnSchema).optional(),
+    movieByURL: z.array(byUrlScraperDefnSchema).optional(),
+    galleryByFragment: z
+      .union([scriptScraperSchema, byFragmentScraperSchema])
+      .optional(),
+    galleryByURL: z.array(byUrlScraperDefnSchema).optional(),
+  }),
+);

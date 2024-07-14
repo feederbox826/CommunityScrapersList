@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { ymlScraper } from "./types";
 import { glob } from "glob";
 import { z } from "zod";
-import { scraperSchema } from "./zodType";
+import { ymlScraperSchema } from "./zodType";
 import { exportScraper, scraperExport } from "./scraper";
 
 function parseFile(file: string): ymlScraper {
@@ -39,8 +39,8 @@ async function parseRepository(
   return scrapers;
 }
 function validate(scraper: ymlScraper) {
-  scraperSchema.parse(scraper);
-  type validated = z.infer<typeof scraperSchema>;
+  ymlScraperSchema.parse(scraper);
+  type validated = z.infer<typeof ymlScraperSchema>;
   return scraper as validated;
 }
 

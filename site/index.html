@@ -51,7 +51,14 @@
         <tbody id="scraper-list"></tbody>
       </table>
     </section>
-    <button id="top-btn" class="has-background-link" onclick="window.scrollTo(0, 0)" id="scrollToTopBtn">⬆️</button>
+    <button
+      id="top-btn"
+      class="has-background-link"
+      onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+      id="scrollToTopBtn"
+    >
+      ⬆️
+    </button>
     <script type="module" src="scraperlist.js"></script>
   </body>
 </html>
